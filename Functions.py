@@ -72,3 +72,33 @@ def SNR_DFE(SNR_folded, f, Rs):
     idx = np.where((f >= lim_inf) & (f <= lim_sup))
     SNR_DFE = np.exp((T*np.trapezoid(np.log(SNR_folded[idx]+1), f[idx]))) - 1
     return SNR_DFE
+
+def SNR_FFE(SNR_Folded, f, Rs):
+    '''
+    Calculates the SNR at the output of a Feed-Forward Equalizer (FFE) based on the folded SNR.
+
+    param:
+        f (np.array): Frequency vector
+        Rs (float): Symbol rate [Baud]
+        SNR_Folded (np.array): Folded SNR vector linear
+    returns:
+        SNR_FFE (float): SNR at the output of the FFE
+    
+    '''
+    
+    df = f[1] - f[0]
+    T = 1.0 / Rs  # Período do símbolo [s]
+
+    lim = Rs / 2.0
+
+    mask = (f >= -lim) & (f <= lim)
+
+    f_lim = f[mask]
+    SNR_Folded_lim = SNR_Folded[mask]
+
+    integrando = 1.0 / (SNR_Folded_lim + 1.0)
+    integral = np.trapz(integrando, dx=df)
+
+    SNR_FFE = (1.0 / (T * integral)) - 1.0
+
+    return SNR_FFE
