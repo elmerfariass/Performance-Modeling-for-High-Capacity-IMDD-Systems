@@ -2,9 +2,14 @@ import numpy as np
 
 def calculate_oma_outer(p_tx_avg_mw, er_db):
     """
-    Calcula a OMA outer (Equação 7)
+    Calculates the Outer OMA (Equation 7).
 
-    recebe a potência média do transmissor em mW e a razão de extinção em dB, e retorna a OMA outer em mW.
+    Parameters:
+    p_tx_avg_mw (float): Average transmitted optical power [mW].
+    er_db (float): Extinction Ratio [dB].
+
+    Returns:
+    float: Outer OMA [mW].
     """
     er_lin = 10**(er_db / 10.0)  # Conversão de dB para escala linear
 
