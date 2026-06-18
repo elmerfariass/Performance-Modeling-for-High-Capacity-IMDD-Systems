@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.constants import k as kB  # Boltzmann constant
+from scipy.special import erfc
 # Physical constant
 q = 1.602176634e-19 # Electron charge [C]
 
@@ -299,3 +300,33 @@ def get_spectral_snr(f, oma_outer, symbol_rate, h_t_f, h_ch_f, s_n_f):
     # SNR(f) = Numerador / S_N(f) [cite: 125]
     snr_f = numerator / s_n_f
     return snr_f
+
+def ber_from_snr_m_pam(snr_linear, M):
+    """
+    Calcula a BER aproximada para M-PAM a partir da SNR em escala linear.
+
+    Fórmula do artigo:
+        BER ≈ (M - 1)/(M log2(M)) * erfc(
+            sqrt(3*SNR / (2*(M^2 - 1)))
+        )
+
+    Parâmetros
+    ----------
+    snr_linear : float ou np.ndarray
+        SNR em escala linear, não em dB.
+
+    M : int
+        Ordem da modulação PAM. Ex: M=4 para 4-PAM.
+
+    Retorna
+    -------
+    ber : float ou np.ndarray
+        Bit Error Rate estimada.
+    """
+    snr_linear = np.asarray(snr_linear)
+
+    ber = ((M - 1) / (M * np.log2(M))) * erfc(
+        np.sqrt((3 * snr_linear) / (2 * (M**2 - 1)))
+    )
+
+    return ber
