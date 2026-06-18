@@ -8,6 +8,7 @@ Python Archive that contains all the functions used in the project.
 
 Authors:
 - [@jezraelP] Jezrael Pereira Filgueiras
+- [@elmerfariass] Elmer Pimentel Farias
 
 
 
