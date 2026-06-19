@@ -4,6 +4,7 @@ from scipy.special import erfc
 # Physical constant
 q = 1.602176634e-19 # Electron charge [C]
 
+
 """
 Python Archive that contains all the functions used in the project.
 
