@@ -250,13 +250,17 @@ def calc_S_ADC_opticompy(Vmax, Vmin, ENOB, outFs, fq_array):
     
     return np.full_like(fq_array, S_ADC)
 
-def calc_S_N(S_RIN_scalar, S_shot_array, S_th_array, S_ADC_array, H_ch_sq_array):
+def calc_S_N(S_RIN_scalar, S_shot_array, S_th_array, H_ch_sq_array):
     """
     Consolidate the total noise S_N(f) at the equalizer input (Eq. 8).
     S_N(f) = S_RIN * |H_ch(f)|^2 + S_shot(f) + S_th(f) + S_ADC(f)
+    
+    Parameters:
+    ...
+    enable_S_ADC: bool, turns the S_ADC contribution on (True) or off (False).
     """
 
-    S_N_array = (S_RIN_scalar * H_ch_sq_array) + S_shot_array + S_th_array + S_ADC_array
+    S_N_array = (S_RIN_scalar * H_ch_sq_array) + S_shot_array + S_th_array
 
     return S_N_array
 
