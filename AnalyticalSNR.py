@@ -250,7 +250,7 @@ def calc_S_ADC_opticompy(Vmax, Vmin, ENOB, outFs, fq_array):
     
     return np.full_like(fq_array, S_ADC)
 
-def calc_S_N(S_RIN_scalar, S_shot_array, S_th_array, H_ch_sq_array):
+def calc_S_N(S_RIN_scalar, S_shot_array, S_th_array, S_ADC_array, H_ch_sq_array, enable_S_ADC=True):
     """
     Consolidate the total noise S_N(f) at the equalizer input (Eq. 8).
     S_N(f) = S_RIN * |H_ch(f)|^2 + S_shot(f) + S_th(f) + S_ADC(f)
@@ -259,11 +259,13 @@ def calc_S_N(S_RIN_scalar, S_shot_array, S_th_array, H_ch_sq_array):
     ...
     enable_S_ADC: bool, turns the S_ADC contribution on (True) or off (False).
     """
+    
+    # Define se a parcela do ADC entra no cálculo ou vira 0
+    S_ADC_term = S_ADC_array if enable_S_ADC else 0
 
-    S_N_array = (S_RIN_scalar * H_ch_sq_array) + S_shot_array + S_th_array
+    S_N_array = (S_RIN_scalar * H_ch_sq_array) + S_shot_array + S_th_array + S_ADC_term
 
     return S_N_array
-
 
 def calculate_oma_outer(p_tx_avg_mw, er_db):
     """
