@@ -146,16 +146,16 @@ def calc_S_th_opticompy(Tc, RL, fq_array):
     return np.full_like(fq_array, S_th)
 
 
-def calc_S_shot(P_RX, G, F, R, fq_array):
+def calc_S_shot(P_RX_avg, G, F, R, fq_array):
     """
     Calculates the PSD of shot noise.
     Assuming k_shot = (G^2 * F * q )/ R.
     """
     k_shot = (G**2 * F * q) / R
-    S_shot = k_shot * P_RX
+    S_shot = k_shot * P_RX_avg
     return np.full_like(fq_array, S_shot)
 
-def calc_S_shot_opticompy(P_RX, R, Id, fq_array):
+def calc_S_shot_opticompy(P_RX_avg, R, Id, fq_array):
     """
     Calculates the PSD of shot noise.
     Adapted to exactly match OpticommPy's time-domain generation.
@@ -170,14 +170,14 @@ def calc_S_shot_opticompy(P_RX, R, Id, fq_array):
     we safely omit G and F to perfectly mirror the simulator's behavior.
     
     Parameters:
-    - P_RX: Average received optical power (W)
+    - P_RX_avg: Average received optical power (W)
     - R: Photodiode responsivity (A/W)
     - Id: Dark current (A)
     - fq_array: Frequency array for the PSD (double-sided)
     """
     
     # Calculate the average photocurrent based on received power
-    I_avg = P_RX * R
+    I_avg = P_RX_avg * R
     
     # Calculate the double-sided PSD matching OpticommPy's exact formula
     # S_shot = q * (photocurrent + dark_current)
@@ -187,15 +187,23 @@ def calc_S_shot_opticompy(P_RX, R, Id, fq_array):
     #Return the constant PSD array across all frequencies
     return np.full_like(fq_array, S_shot)
 
-def calc_S_RIN(P_TX_sq_avg, RIN_coeff_dB, fq_array ):
+def calc_S_RIN(P_TX_sq_avg, RIN_coeff, fq_array):
     """
     Calculates the PSD of RIN at the source.
     k_RIN = RIN_coeff_linear / 2.
     Returns a scalar, as the channel filter will be applied in the main function.
+
+    Parameters:
+    - P_TX_sq_avg: Average transmitted optical power squared (W^2)
+    - RIN_coeff: Relative Intensity Noise coefficient (linear scale)
+    - fq_array: Frequency array for the PSD (double-sided)
+
+    Returns:
+    - S_RIN: PSD of RIN (W^2/Hz), constant across all frequencies in fq_array
+
     """
-    # Convert from dB/Hz to linear scale
-    RIN_coeff_lin = 10**(RIN_coeff_dB / 10)
-    k_RIN = RIN_coeff_lin / 2
+    
+    k_RIN = RIN_coeff / 2
     return np.full_like(fq_array, k_RIN * P_TX_sq_avg)
 
 def calc_S_RIN_opticompy(RIN_var, Fs, fq_array):
@@ -221,6 +229,17 @@ def calc_S_ADC(PAPR, sigma_x_sq, ENOB, fs, fq_array):
     """
     Calculates the PSD of ADC quantization noise.
     Based on the quantization noise model.
+
+    Parameters:
+    - PAPR: Peak-to-Average Power Ratio of the signal
+    - sigma_x_sq: Variance of the input signal to the ADC
+    - ENOB: Effective Number of Bits of the ADC
+    - fs: Sampling frequency of the ADC (Hz)
+    - fq_array: Frequency array for the PSD (double-sided)
+
+    Returns:
+    - S_ADC: PSD of ADC quantization noise (W^2/Hz), constant across all frequencies in fq_array
+
     """
     S_ADC = ((PAPR) * sigma_x_sq / (12 * fs) * (2**(2 * ENOB - 2)))
     return np.full_like(fq_array, S_ADC)
@@ -237,6 +256,10 @@ def calc_S_ADC_opticompy(Vmax, Vmin, ENOB, outFs, fq_array):
     - ENOB: Effective Number of Bits
     - outFs: Output sampling frequency of the ADC (Hz) - corresponds to fs
     - fq_array: Frequency array for the PSD (double-sided)
+
+    Returns:
+    - S_ADC: PSD of ADC quantization noise (V^2/Hz), constant across all frequencies in fq_array
+
     """
     
     #  Find the peak voltage from the OpticommPy full-scale range
@@ -251,7 +274,7 @@ def calc_S_ADC_opticompy(Vmax, Vmin, ENOB, outFs, fq_array):
     
     return np.full_like(fq_array, S_ADC)
 
-def calc_S_N(S_RIN_scalar, S_shot_array, S_th_array, S_ADC_array, H_ch_sq_array, enable_S_ADC=True):
+def calc_S_N(S_RIN_scalar, S_shot_array, S_th_array, S_ADC_array, H_ch_array, enable_S_ADC=True):
     """
     Consolidate the total noise S_N(f) at the equalizer input (Eq. 8).
     S_N(f) = S_RIN * |H_ch(f)|^2 + S_shot(f) + S_th(f) + S_ADC(f)
@@ -264,7 +287,7 @@ def calc_S_N(S_RIN_scalar, S_shot_array, S_th_array, S_ADC_array, H_ch_sq_array,
     # Define se a parcela do ADC entra no cálculo ou vira 0
     S_ADC_term = S_ADC_array if enable_S_ADC else 0
 
-    S_N_array = (S_RIN_scalar * H_ch_sq_array) + S_shot_array + S_th_array + S_ADC_term
+    S_N_array = (S_RIN_scalar * np.abs(H_ch_array ** 2)) + S_shot_array + S_th_array + S_ADC_term
 
     return S_N_array
 
@@ -292,7 +315,7 @@ def get_spectral_snr(f, oma_outer, symbol_rate, h_t_f, h_ch_f, s_n_f):
 
     parâmetros:
     f: Frequência [Hz]
-    oma_outer: OMA externa [mW]
+    oma_outer: OMA externa [W]
     symbol_rate: Taxa de símbolos [Hz]
     h_t_f: Resposta em frequência do transmissor [adimensional]
     h_ch_f: Resposta em frequência do canal [adimensional]
