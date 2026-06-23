@@ -11,6 +11,7 @@ Python Archive that contains all the functions used in the project.
 Authors:
 - [@jezraelP] Jezrael Pereira Filgueiras
 - [@elmerfariass] Elmer Pimentel Farias
+- [@JoaohMorais2] João Henrique Morais do Nascimento
 
 
 
@@ -267,22 +268,22 @@ def calc_S_N(S_RIN_scalar, S_shot_array, S_th_array, S_ADC_array, H_ch_sq_array,
 
     return S_N_array
 
-def calculate_oma_outer(p_tx_avg_mw, er_db):
+def calculate_oma_outer(p_tx_avg_w, er_db):
     """
     Calculates the Outer OMA (Equation 7).
 
     Parameters:
-    p_tx_avg_mw (float): Average transmitted optical power [mW].
+    p_tx_avg_w (float): Average transmitted optical power [W].
     er_db (float): Extinction Ratio [dB].
 
     Returns:
-    float: Outer OMA [mW].
+    float: Outer OMA [W].
     """
     er_lin = 10**(er_db / 10.0)  # Conversão de dB para escala linear
 
     # Cálculo da OMA outer usando a equação(7)
     
-    oma_outer = 2 * p_tx_avg_mw * (er_lin - 1) / (er_lin + 1)
+    oma_outer = 2 * p_tx_avg_w * (er_lin - 1) / (er_lin + 1)
     return oma_outer
 
 def get_spectral_snr(f, oma_outer, symbol_rate, h_t_f, h_ch_f, s_n_f):
