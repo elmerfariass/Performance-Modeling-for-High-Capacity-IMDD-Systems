@@ -273,7 +273,7 @@ def calc_S_ADC_opticompy(Vmax, Vmin, ENOB, outFs, fq_array):
     
     return np.full_like(fq_array, S_ADC)
 
-def calc_S_N(S_RIN_scalar, S_shot_array, S_th_array, S_ADC_array, H_ch_sq_array, enable_S_ADC=True):
+def calc_S_N(S_RIN_scalar, S_shot_array, S_th_array, S_ADC_array, H_ch_array, enable_S_ADC=True):
     """
     Consolidate the total noise S_N(f) at the equalizer input (Eq. 8).
     S_N(f) = S_RIN * |H_ch(f)|^2 + S_shot(f) + S_th(f) + S_ADC(f)
@@ -286,7 +286,7 @@ def calc_S_N(S_RIN_scalar, S_shot_array, S_th_array, S_ADC_array, H_ch_sq_array,
     # Define se a parcela do ADC entra no cálculo ou vira 0
     S_ADC_term = S_ADC_array if enable_S_ADC else 0
 
-    S_N_array = (S_RIN_scalar * np.abs(H_ch_sq_array ** 2)) + S_shot_array + S_th_array + S_ADC_term
+    S_N_array = (S_RIN_scalar * np.abs(H_ch_array ** 2)) + S_shot_array + S_th_array + S_ADC_term
 
     return S_N_array
 
@@ -295,11 +295,11 @@ def calculate_oma_outer(p_tx_avg_mw, er_db):
     Calculates the Outer OMA (Equation 7).
 
     Parameters:
-    p_tx_avg_mw (float): Average transmitted optical power [mW].
+    p_tx_avg_mw (float): Average transmitted optical power [W].
     er_db (float): Extinction Ratio [dB].
 
     Returns:
-    float: Outer OMA [mW].
+    float: Outer OMA [W].
     """
     er_lin = 10**(er_db / 10.0)  # Conversão de dB para escala linear
 
@@ -314,7 +314,7 @@ def get_spectral_snr(f, oma_outer, symbol_rate, h_t_f, h_ch_f, s_n_f):
 
     parâmetros:
     f: Frequência [Hz]
-    oma_outer: OMA externa [mW]
+    oma_outer: OMA externa [W]
     symbol_rate: Taxa de símbolos [Hz]
     h_t_f: Resposta em frequência do transmissor [adimensional]
     h_ch_f: Resposta em frequência do canal [adimensional]
