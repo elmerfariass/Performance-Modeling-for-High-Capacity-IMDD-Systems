@@ -11,7 +11,6 @@ Python Archive that contains all the functions used in the project.
 Authors:
 - [@jezraelP] Jezrael Pereira Filgueiras
 - [@elmerfariass] Elmer Pimentel Farias
-- [@JoaohMorais2] João Henrique Morais do Nascimento
 
 
 
@@ -146,17 +145,16 @@ def calc_S_th_opticompy(Tc, RL, fq_array):
     return np.full_like(fq_array, S_th)
 
 
-def calc_S_shot(p_rx_avg_W, G, F, R, fq_array):
+def calc_S_shot(P_RX, G, F, R, fq_array):
     """
     Calculates the PSD of shot noise.
     Assuming k_shot = (G^2 * F * q )/ R.
     """
     k_shot = (G**2 * F * q) / R
-    
-    S_shot = k_shot * p_rx_avg_W
+    S_shot = k_shot * P_RX
     return np.full_like(fq_array, S_shot)
 
-def calc_S_shot_opticompy(P_RX_avg, R, Id, fq_array):
+def calc_S_shot_opticompy(P_RX, R, Id, fq_array):
     """
     Calculates the PSD of shot noise.
     Adapted to exactly match OpticommPy's time-domain generation.
@@ -171,14 +169,14 @@ def calc_S_shot_opticompy(P_RX_avg, R, Id, fq_array):
     we safely omit G and F to perfectly mirror the simulator's behavior.
     
     Parameters:
-    - P_RX_avg: Average received optical power (W)
+    - P_RX: Average received optical power (W)
     - R: Photodiode responsivity (A/W)
     - Id: Dark current (A)
     - fq_array: Frequency array for the PSD (double-sided)
     """
     
     # Calculate the average photocurrent based on received power
-    I_avg = P_RX_avg * R
+    I_avg = P_RX * R
     
     # Calculate the double-sided PSD matching OpticommPy's exact formula
     # S_shot = q * (photocurrent + dark_current)
@@ -188,26 +186,16 @@ def calc_S_shot_opticompy(P_RX_avg, R, Id, fq_array):
     #Return the constant PSD array across all frequencies
     return np.full_like(fq_array, S_shot)
 
-def calc_S_RIN(Ps2, RIN_coeff, fq_array):
+def calc_S_RIN(P_TX_sq_avg, RIN_coeff_dB, fq_array ):
     """
     Calculates the PSD of RIN at the source.
     k_RIN = RIN_coeff_linear / 2.
     Returns a scalar, as the channel filter will be applied in the main function.
-
-    Parameters:
-    - Ps2: Array of power levels for each PAM level (W)
-    - RIN_coeff: Relative Intensity Noise coefficient (dB/Hz)
-    - fq_array: Frequency array for the PSD (double-sided)(Hz)
-
-    Returns:
-    - S_RIN: PSD of RIN (W^2/Hz), constant across all frequencies in fq_array
-
     """
-    pTx_mean_squared = np.mean(Ps2**2)
-    k_RIN = RIN_coeff / 2
-    return np.full_like(fq_array, k_RIN * pTx_mean_squared)
-
-
+    # Convert from dB/Hz to linear scale
+    RIN_coeff_lin = 10**(RIN_coeff_dB / 10)
+    k_RIN = RIN_coeff_lin / 2
+    return np.full_like(fq_array, k_RIN * P_TX_sq_avg)
 
 def calc_S_RIN_opticompy(RIN_var, Fs, fq_array):
     """
@@ -232,17 +220,6 @@ def calc_S_ADC(PAPR, sigma_x_sq, ENOB, fs, fq_array):
     """
     Calculates the PSD of ADC quantization noise.
     Based on the quantization noise model.
-
-    Parameters:
-    - PAPR: Peak-to-Average Power Ratio of the signal
-    - sigma_x_sq: Variance of the input signal to the ADC
-    - ENOB: Effective Number of Bits of the ADC
-    - fs: Sampling frequency of the ADC (Hz)
-    - fq_array: Frequency array for the PSD (double-sided)
-
-    Returns:
-    - S_ADC: PSD of ADC quantization noise (W^2/Hz), constant across all frequencies in fq_array
-
     """
     S_ADC = ((PAPR) * sigma_x_sq / (12 * fs) * (2**(2 * ENOB - 2)))
     return np.full_like(fq_array, S_ADC)
@@ -259,10 +236,6 @@ def calc_S_ADC_opticompy(Vmax, Vmin, ENOB, outFs, fq_array):
     - ENOB: Effective Number of Bits
     - outFs: Output sampling frequency of the ADC (Hz) - corresponds to fs
     - fq_array: Frequency array for the PSD (double-sided)
-
-    Returns:
-    - S_ADC: PSD of ADC quantization noise (V^2/Hz), constant across all frequencies in fq_array
-
     """
     
     #  Find the peak voltage from the OpticommPy full-scale range
@@ -277,7 +250,7 @@ def calc_S_ADC_opticompy(Vmax, Vmin, ENOB, outFs, fq_array):
     
     return np.full_like(fq_array, S_ADC)
 
-def calc_S_N(S_RIN_scalar, S_shot_array, S_th_array, S_ADC_array, H_ch_array, enable_S_ADC=True):
+def calc_S_N(S_RIN_scalar, S_shot_array, S_th_array, S_ADC_array, H_ch_sq_array, enable_S_ADC=True):
     """
     Consolidate the total noise S_N(f) at the equalizer input (Eq. 8).
     S_N(f) = S_RIN * |H_ch(f)|^2 + S_shot(f) + S_th(f) + S_ADC(f)
@@ -290,43 +263,27 @@ def calc_S_N(S_RIN_scalar, S_shot_array, S_th_array, S_ADC_array, H_ch_array, en
     # Define se a parcela do ADC entra no cálculo ou vira 0
     S_ADC_term = S_ADC_array if enable_S_ADC else 0
 
-    S_N_array = (S_RIN_scalar * np.abs(H_ch_array ** 2)) + S_shot_array + S_th_array + S_ADC_term
+    S_N_array = (S_RIN_scalar * H_ch_sq_array) + S_shot_array + S_th_array + S_ADC_term
 
     return S_N_array
 
-def calculate_oma_outer(p_tx_avg_w, er_db):
+def calculate_oma_outer(p_tx_avg_mw, er_db):
     """
     Calculates the Outer OMA (Equation 7).
 
     Parameters:
-    p_tx_avg_w (float): Average transmitted optical power [W].
+    p_tx_avg_mw (float): Average transmitted optical power [mW].
     er_db (float): Extinction Ratio [dB].
 
     Returns:
-    float: Outer OMA [W].
+    float: Outer OMA [mW].
     """
     er_lin = 10**(er_db / 10.0)  # Conversão de dB para escala linear
 
     # Cálculo da OMA outer usando a equação(7)
     
-    oma_outer = 2 * p_tx_avg_w * (er_lin - 1) / (er_lin + 1)
+    oma_outer = 2 * p_tx_avg_mw * (er_lin - 1) / (er_lin + 1)
     return oma_outer
-
-def calculate_ps2(p_tx_avg_w, M, OMA_outer):
-    """
-    Calculates the power levels for each PAM level.
-
-    Parameters:
-    p_tx_avg_w (float): Average transmitted optical power [W].
-    M (int): Order of the PAM modulation.
-    OMA_outer (float): Outer OMA [W].
-
-    Returns:
-    numpy.ndarray: Array of power levels for each PAM level [W].
-    """
-    niveis_pam = np.linspace(-1, 1, M)
-    Ps2 = p_tx_avg_w + niveis_pam * (OMA_outer / 2)
-    return Ps2
 
 def get_spectral_snr(f, oma_outer, symbol_rate, h_t_f, h_ch_f, s_n_f):
     """
@@ -334,7 +291,7 @@ def get_spectral_snr(f, oma_outer, symbol_rate, h_t_f, h_ch_f, s_n_f):
 
     parâmetros:
     f: Frequência [Hz]
-    oma_outer: OMA externa [W]
+    oma_outer: OMA externa [mW]
     symbol_rate: Taxa de símbolos [Hz]
     h_t_f: Resposta em frequência do transmissor [adimensional]
     h_ch_f: Resposta em frequência do canal [adimensional]
