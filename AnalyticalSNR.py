@@ -60,7 +60,7 @@ def SNR_Folding(SNR, f, mu, Rs):
         SNR_folded += np.roll(SNR, i*shift)
     return SNR_folded
 
-def SNR_DFE(SNR_folded, f, Rs):
+def SNR_DFE(SNR_folded, SIM_N, f, Rs):
     """
     calculates the SNR at the output of a Decision Feedback Equalizer (DFE) based on the folded SNR.
 
@@ -71,16 +71,17 @@ def SNR_DFE(SNR_folded, f, Rs):
     returns:
         SNR_DFE (np.array): SNR at the output of the DFE
     """
+    T = 1.0 / Rs  # Período do símbolo [s]
+    f_int = np.linspace(-1 / (2 * T), 1 / (2 * T), SIM_N)
 
-    lim_inf = -Rs/2
-    lim_sup = Rs/2
-    T = 1/Rs
+    SNR_f_interp = 10**(np.interp(f_int, f, 10 * np.log10(np.abs(SNR_folded))) / 10)
 
-    idx = np.where((f >= lim_inf) & (f <= lim_sup))
-    SNR_DFE = np.exp((T*np.trapezoid(np.log(SNR_folded[idx]+1), f[idx]))) - 1
-    return SNR_DFE
+    snr_dfe_lin = np.exp(T * np.trapezoid(np.log(SNR_f_interp + 1), x=f_int)) - 1
 
-def SNR_FFE(SNR_Folded, f, Rs):
+    
+    return 10*np.log10(snr_dfe_lin)
+
+def SNR_FFE(SNR_Folded, SIM_N, f, Rs):
     '''
     Calculates the SNR at the output of a Feed-Forward Equalizer (FFE) based on the folded SNR.
 
@@ -93,22 +94,14 @@ def SNR_FFE(SNR_Folded, f, Rs):
     
     '''
     
-    df = f[1] - f[0]
     T = 1.0 / Rs  # Período do símbolo [s]
+    f_int = np.linspace(-1 / (2 * T), 1 / (2 * T), SIM_N)
 
-    lim = Rs / 2.0
+    SNR_f_interp = 10**(np.interp(f_int, f, 10 * np.log10(np.abs(SNR_Folded))) / 10)
+        
+    snr_ffe_lin = 1 / (T * np.trapezoid(1 / (SNR_f_interp + 1), x=f_int)) - 1
 
-    mask = (f >= -lim) & (f <= lim)
-
-    f_lim = f[mask]
-    SNR_Folded_lim = SNR_Folded[mask]
-
-    integrando = 1.0 / (SNR_Folded_lim + 1.0)
-    integral = np.trapz(integrando, dx=df)
-
-    SNR_FFE = (1.0 / (T * integral)) - 1.0
-
-    return SNR_FFE
+    return 10*np.log10(snr_ffe_lin)
 
 
 
