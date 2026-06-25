@@ -186,7 +186,9 @@ def calc_S_shot_opticompy(P_RX, R, Id, fq_array):
     #Return the constant PSD array across all frequencies
     return np.full_like(fq_array, S_shot)
 
-def calc_S_RIN(P_TX_sq_avg, RIN_coeff_dB, fq_array ):
+
+
+def calc_S_RIN(Ps2, RIN_coeff_dB, fq_array ):
     """
     Calculates the PSD of RIN at the source.
     k_RIN = RIN_coeff_linear / 2.
@@ -195,7 +197,8 @@ def calc_S_RIN(P_TX_sq_avg, RIN_coeff_dB, fq_array ):
     # Convert from dB/Hz to linear scale
     RIN_coeff_lin = 10**(RIN_coeff_dB / 10)
     k_RIN = RIN_coeff_lin / 2
-    return np.full_like(fq_array, k_RIN * P_TX_sq_avg)
+    return np.full_like(fq_array, k_RIN * np.mean(Ps2**2))
+
 
 def calc_S_RIN_opticompy(RIN_var, Fs, fq_array):
     """
@@ -337,3 +340,20 @@ def ber_from_snr_m_pam(snr_linear, M):
     )
 
     return ber
+
+def calculate_ps2(p_tx_avg_w, M, OMA_outer):
+    """
+    Calculates the power levels for each PAM level.
+
+    Parameters:
+    p_tx_avg_w (float): Average transmitted optical power [W].
+    M (int): Order of the PAM modulation.
+    OMA_outer (float): Outer OMA [W].
+
+    Returns:
+    numpy.ndarray: Array of power levels for each PAM level [W].
+    """
+
+    niveis_pam = np.linspace(-1, 1, M)
+    Ps2 = p_tx_avg_w + niveis_pam * (OMA_outer / 2)
+    return Ps2
