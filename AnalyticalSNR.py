@@ -146,7 +146,7 @@ def calc_S_th_opticompy(Tc, RL, fq_array):
     return np.full_like(fq_array, S_th)
 
 
-def calc_S_shot(p_tx_avg_W, H_ch, G, F, R, fq_array):
+def calc_S_shot(p_rx_avg_W, G, F, R, fq_array):
     """
     Calculates the PSD of shot noise.
     Assuming k_shot = (G^2 * F * q )/ R.
@@ -324,7 +324,6 @@ def calculate_ps2(p_tx_avg_w, M, OMA_outer):
     Returns:
     numpy.ndarray: Array of power levels for each PAM level [W].
     """
-
     niveis_pam = np.linspace(-1, 1, M)
     Ps2 = p_tx_avg_w + niveis_pam * (OMA_outer / 2)
     return Ps2
