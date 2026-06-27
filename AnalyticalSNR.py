@@ -73,8 +73,8 @@ def SNR_DFE(SNR_folded, SIM_N, f, Rs):
     """
     T = 1.0 / Rs  # Período do símbolo [s]
     f_int = np.linspace(-1 / (2 * T), 1 / (2 * T), SIM_N)
-
-    SNR_f_interp = 10**(np.interp(f_int, f, 10 * np.log10(np.abs(SNR_folded))) / 10)
+    snr_min = np.maximum(np.abs(SNR_folded), 1e-12)
+    SNR_f_interp = 10**(np.interp(f_int, f, 10 * np.log10(snr_min)) / 10)
 
     snr_dfe_lin = np.exp(T * np.trapezoid(np.log(SNR_f_interp + 1), x=f_int)) - 1
 
@@ -96,8 +96,8 @@ def SNR_FFE(SNR_Folded, SIM_N, f, Rs):
     
     T = 1.0 / Rs  # Período do símbolo [s]
     f_int = np.linspace(-1 / (2 * T), 1 / (2 * T), SIM_N)
-
-    SNR_f_interp = 10**(np.interp(f_int, f, 10 * np.log10(np.abs(SNR_Folded))) / 10)
+    snr_min = np.maximum(np.abs(SNR_Folded), 1e-12)
+    SNR_f_interp = 10**(np.interp(f_int, f, 10 * np.log10(snr_min)) / 10)
         
     snr_ffe_lin = 1 / (T * np.trapezoid(1 / (SNR_f_interp + 1), x=f_int)) - 1
 
