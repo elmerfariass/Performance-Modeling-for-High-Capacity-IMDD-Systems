@@ -350,3 +350,32 @@ def calculate_ps2(p_tx_avg_w, M, OMA_outer):
     niveis_pam = np.linspace(-1, 1, M)
     Ps2 = p_tx_avg_w + niveis_pam * (OMA_outer / 2)
     return Ps2
+
+import numpy as np
+
+def calc_S_ADC(Vpp, ENOB, Rs, fq_array, fs):
+    """
+    Calcula a Densidade Espectral de Potência (PSD) do ruído de quantização do ADC
+    baseado na aproximação AWGN sobre a banda de Nyquist.
+    
+    Parâmetros:
+    - Vpp: Tensão pico a pico na entrada do ADC (Full-scale range).
+    - ENOB: Effective Number of Bits (Número Efetivo de Bits) do ADC.
+    - Rs: Symbol rate (ou Taxa de Amostragem, dependendo da convenção matemática do modelo).
+    - fq_array: Array de frequências.
+    
+    Retorna:
+    - Array com o valor constante da PSD do ruído de quantização para todas as frequências.
+    """
+    
+    # 1. Calcula o passo de quantização (Delta)
+    Delta = Vpp / (2**ENOB)
+    
+    # 2. Calcula a variância teórica do ruído de quantização
+    sigma_q2 = (Delta**2) / 12.0
+    
+    # 3. Calcula o S_ADC (E[|n_q(f)|^2]) isolando-o na fórmula da imagem
+    S_ADC_scalar = sigma_q2 / (fs/2)
+    
+    # 4. Retorna como um array do mesmo tamanho que fq_array (espectro plano / branco)
+    return np.full_like(fq_array, S_ADC_scalar)
