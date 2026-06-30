@@ -40,78 +40,63 @@ This hybrid approach provides full control over the implemented models while lev
 
 ---
 
----
+
 
 # Results
 
 The following sections compare the figures reported in the reference paper with the results obtained from this implementation.
 
-## Example 1 – BER versus Received Optical Power
+## Example 1 – SNR versus 3dB in 50 GBaud
 
 **Reference paper**
 
-<!-- INSERT FIGURE FROM PAPER -->
 
 <p align="center">
-  <img src="./images_readme/model.png" alt="Reference Model" width="700">
+  <img src="./images_readme/SNR_3dB_50GBaud_artigo.png" alt="Reference Model" width="700">
 </p>
 
 **This implementation**
 
-<!-- INSERT GENERATED FIGURE -->
 
 <p align="center">
-  <img src="./images_readme/model.png" alt="Reference Model" width="700">
+  <img src="./images_readme/SNRxB_3dB-50Gbaud.png" alt="Reference Model" width="700">
 </p>
 ---
 
-## Example 2 – SNR Estimation
+## Example 2 – BER versus 3dB in 50 GBaud
 
 **Reference paper**
 
-<!-- INSERT FIGURE FROM PAPER -->
 
 <p align="center">
-  <img src="./images_readme/model.png" alt="Reference Model" width="700">
+  <img src="./images_readme/BERxB3dB_artigo.png" alt="Reference Model" width="700">
 </p>
 
 **This implementation**
 
-<!-- INSERT GENERATED FIGURE -->
 
 <p align="center">
-  <img src="./images_readme/model.png" alt="Reference Model" width="700">
+  <img src="./images_readme/BERxB3dB.png" alt="Reference Model" width="700">
 </p>
 
 ---
 
-## Example 3 – Equalizer Performance
+## Example 3 – SNR versus Received Optical Power using 56 GBaud
 
 **Reference paper**
 
-<!-- INSERT FIGURE FROM PAPER -->
 
 <p align="center">
-  <img src="./images_readme/model.png" alt="Reference Model" width="700">
+  <img src="./images_readme/SNR_P_rx_artigo.png" alt="Reference Model" width="700">
 </p>
 
 **This implementation**
 
-<!-- INSERT GENERATED FIGURE -->
 
 <p align="center">
-  <img src="./images_readme/model.png" alt="Reference Model" width="700">
+  <img src="./images_readme/SNRxP_rx.png" alt="Reference Model" width="700">
 </p>
 
-**This implementation**
-
-<!-- INSERT GENERATED FIGURE -->
-
-<p align="center">
-  <img src="./images_readme/model.png" alt="Reference Model" width="700">
-</p>
-
----
 
 # Repository Structure
 
