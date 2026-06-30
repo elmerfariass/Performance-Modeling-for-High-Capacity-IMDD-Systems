@@ -61,6 +61,7 @@ The following sections compare the figures reported in the reference paper with 
 <p align="center">
   <img src="./images_readme/SNRxB_3dB-50Gbaud.png" alt="Reference Model" width="700">
 </p>
+
 ---
 
 ## Example 2 – BER versus 3dB in 50 GBaud
