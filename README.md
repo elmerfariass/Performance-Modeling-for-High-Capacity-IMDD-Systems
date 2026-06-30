@@ -53,7 +53,7 @@ The following sections compare the figures reported in the reference paper with 
 <!-- INSERT FIGURE FROM PAPER -->
 
 <p align="center">
-<img src="docs/paper_figure_1.png" width="700">
+  <img src="IMDD_Simulation/images/model.png" width="700" alt="Reference Model">
 </p>
 
 **This implementation**
@@ -61,7 +61,7 @@ The following sections compare the figures reported in the reference paper with 
 <!-- INSERT GENERATED FIGURE -->
 
 <p align="center">
-<img src="docs/our_figure_1.png" width="700">
+  <img src="IMDD_Simulation/images/SNRxP_rx.png" width="700" alt="BER x Received Optical Power Implementation">
 </p>
 
 ---
@@ -73,7 +73,7 @@ The following sections compare the figures reported in the reference paper with 
 <!-- INSERT FIGURE FROM PAPER -->
 
 <p align="center">
-<img src="docs/paper_figure_2.png" width="700">
+  <img src="IMDD_Simulation/images/ERRO_SNR_CD.png" width="700" alt="Reference SNR Paper Figure">
 </p>
 
 **This implementation**
@@ -81,7 +81,7 @@ The following sections compare the figures reported in the reference paper with 
 <!-- INSERT GENERATED FIGURE -->
 
 <p align="center">
-<img src="docs/our_figure_2.png" width="700">
+  <img src="IMDD_Simulation/images/SNRxFTEtaps com modelo analítico.png" width="700" alt="SNR Estimation Implementation">
 </p>
 
 ---
@@ -93,7 +93,15 @@ The following sections compare the figures reported in the reference paper with 
 <!-- INSERT FIGURE FROM PAPER -->
 
 <p align="center">
-<img src="docs/paper_figure_3.png" width="700">
+  <img src="IMDD_Simulation/images/FFE_Desempenho_dB.png" width="700" alt="Reference Equalizer Performance">
+</p>
+
+**This implementation**
+
+<!-- INSERT GENERATED FIGURE -->
+
+<p align="center">
+  <img src="IMDD_Simulation/images/DFE_Desempenho_dB.png" width="700" alt="Equalizer Performance Implementation (DFE/FFE)">
 </p>
 
 **This implementation**
@@ -109,12 +117,24 @@ The following sections compare the figures reported in the reference paper with 
 # Repository Structure
 
 ```text
-├── analytical_models/      # Analytical derivations and implementations
-├── simulations/            # Numerical simulation scripts
-├── dsp/                    # Equalization and DSP algorithms
-├── figures/                # Generated simulation figures
-├── docs/                   # Figures used in the README
-└── README.md
+
+├── Functions notebooks/          # Jupyter notebooks for individual function developments
+│   ├── ChannelFrequencyResponse.ipynb
+│   ├── Equalizer_output.ipynb
+│   ├── noisepowerdev.ipynb
+│   ├── oma_calculation.ipynb
+│   ├── SNR_Equalizers.ipynb
+│   └── snr_tot.ipynb
+├── IMDD_Simulation/              # Main simulation environment and analytical models
+│   ├── images/                   # Generated simulation curves and performance figures
+│   │   ├── BER x ODN Loss.png
+│   │   ├── BERxB3dB.png
+│   │   └── ... (and other performance plots)
+│   ├── AnalyticalSNR.py          # Core Python module for analytical SNR calculations
+│   ├── ChoramticDispersion.ipynb # Chromatic dispersion effects and simulation
+│   ├── RIN_VAR.ipynb             # Relative Intensity Noise (RIN) variations analysis
+│   └── Sim_vs_Model.ipynb        # Validation notebook comparing simulation vs. analytical model
+└── README.md                     # Repository documentation
 ```
 
 ---
