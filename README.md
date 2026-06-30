@@ -53,7 +53,7 @@ The following sections compare the figures reported in the reference paper with 
 <!-- INSERT FIGURE FROM PAPER -->
 
 <p align="center">
-  <img src="IMDD_Simulation/images/model.png" width="700" alt="Reference Model">
+  <img src="./images_readme/model.png" alt="Reference Model" width="700">
 </p>
 
 **This implementation**
@@ -61,9 +61,8 @@ The following sections compare the figures reported in the reference paper with 
 <!-- INSERT GENERATED FIGURE -->
 
 <p align="center">
-  <img src="IMDD_Simulation/images/SNRxP_rx.png" width="700" alt="BER x Received Optical Power Implementation">
+  <img src="./images_readme/model.png" alt="Reference Model" width="700">
 </p>
-
 ---
 
 ## Example 2 – SNR Estimation
@@ -73,7 +72,7 @@ The following sections compare the figures reported in the reference paper with 
 <!-- INSERT FIGURE FROM PAPER -->
 
 <p align="center">
-  <img src="IMDD_Simulation/images/ERRO_SNR_CD.png" width="700" alt="Reference SNR Paper Figure">
+  <img src="./images_readme/model.png" alt="Reference Model" width="700">
 </p>
 
 **This implementation**
@@ -81,7 +80,7 @@ The following sections compare the figures reported in the reference paper with 
 <!-- INSERT GENERATED FIGURE -->
 
 <p align="center">
-  <img src="IMDD_Simulation/images/SNRxFTEtaps com modelo analítico.png" width="700" alt="SNR Estimation Implementation">
+  <img src="./images_readme/model.png" alt="Reference Model" width="700">
 </p>
 
 ---
@@ -93,7 +92,7 @@ The following sections compare the figures reported in the reference paper with 
 <!-- INSERT FIGURE FROM PAPER -->
 
 <p align="center">
-  <img src="IMDD_Simulation/images/FFE_Desempenho_dB.png" width="700" alt="Reference Equalizer Performance">
+  <img src="./images_readme/model.png" alt="Reference Model" width="700">
 </p>
 
 **This implementation**
@@ -101,7 +100,7 @@ The following sections compare the figures reported in the reference paper with 
 <!-- INSERT GENERATED FIGURE -->
 
 <p align="center">
-  <img src="IMDD_Simulation/images/DFE_Desempenho_dB.png" width="700" alt="Equalizer Performance Implementation (DFE/FFE)">
+  <img src="./images_readme/model.png" alt="Reference Model" width="700">
 </p>
 
 **This implementation**
@@ -109,7 +108,7 @@ The following sections compare the figures reported in the reference paper with 
 <!-- INSERT GENERATED FIGURE -->
 
 <p align="center">
-<img src="docs/our_figure_3.png" width="700">
+  <img src="./images_readme/model.png" alt="Reference Model" width="700">
 </p>
 
 ---
