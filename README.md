@@ -40,46 +40,6 @@ This hybrid approach provides full control over the implemented models while lev
 
 ---
 
-# Technical Scope
-
-The implemented framework includes the following features:
-
-## Modulation
-
-- M-PAM modulation formats
-- Primary focus on **4-PAM** systems for short-reach optical communications
-
-## Channel Modeling
-
-- Limited transmitter and receiver bandwidth
-- Chromatic Dispersion (CD)
-
-## Noise Sources
-
-- Relative Intensity Noise (RIN)
-- Shot Noise
-- Thermal Noise
-- ADC Quantization Noise
-
-## Digital Signal Processing
-
-Receiver-side equalization using
-
-- Feed-Forward Equalizer (FFE)
-- Decision Feedback Equalizer (DFE)
-
----
-
-# Methodology
-
-The workflow adopted in this repository is summarized below:
-
-1. Implement the analytical expressions from the reference paper.
-2. Build the equivalent numerical simulation.
-3. Run both approaches under identical system parameters.
-4. Compare the obtained BER and SNR results.
-5. Validate the analytical model through numerical agreement.
-
 ---
 
 # Results
@@ -168,9 +128,13 @@ Rizzelli, G., Torres-Ferrera, P., Forghieri, F., & Gaudino, R.
 *Journal of Lightwave Technology*, Vol. 42, No. 5, pp. 1443–1452, 2024.
 
 ---
+## Authors
 
-# Acknowledgments
+This project was developed by:
 
-This work was developed as part of the **Digital Signal Processing Training Program** at **Virtus-CC**, under the supervision of **Professor Edson Porto da Silva**.
+- **Jezrael Pereira Filgueira**
+- **Elmer Pimentel Farias**
+- **Eduardo Henrique de Coura Freitas**
+- **João Henrique Morais do Nascimento**
 
-The project also makes use of selected components from **OptiCommPy**, an open-source framework for optical communication system simulation.
+as part of the **Digital Signal Processing (DSP) Training Program** at **Virtus-CC**, under the supervision of **Professor Edson Porto da Silva**.
