@@ -1,27 +1,176 @@
 # Performance Modeling for High-Capacity IMDD Systems
 
-This repository contains the source code and simulation framework developed as the final project for the Digital Signal Processing (DSP) training program at Virtus-CC, conducted under the supervision of Professor Edson Porto da Silva.
+This repository contains the simulation framework and analytical implementations developed as the final project of the **Digital Signal Processing (DSP) Training Program** at **Virtus-CC**, under the supervision of **Professor Edson Porto da Silva**.
 
-## Project Description
+The main goal of this project is to **reproduce, validate, and analyze** the results presented in the paper:
 
-The primary objective of this project is to model the performance of High-Capacity Intensity Modulation and Direct Detection (IMDD) systems. The study focuses on reproducing the analytical results derived from the reference article "An Analytical Model for Performance Estimation in Modern High-Capacity IMDD Systems". 
+> **G. Rizzelli, P. Torres-Ferrera, F. Forghieri, and R. Gaudino**,  
+> *"An Analytical Model for Performance Estimation in Modern High-Capacity IMDD Systems,"*  
+> Journal of Lightwave Technology, vol. 42, no. 5, pp. 1443–1452, March 2024.
 
-The reference article proposes an analytical model to estimate the signal-to-noise ratio (SNR) and the Bit Error Rate (BER) at the output of a receiver adaptive equalizer in IMDD optical transmission systems. To validate these theoretical frameworks, our project performs a comparative analysis between the derived analytical models and numerical simulations obtained using `opticommpy`—an open-source Python library for optical communication systems authored by Professor Edson Porto da Silva.
+Rather than proposing a new analytical model, this work focuses on faithfully implementing the methodology described in the paper and verifying whether its theoretical predictions can be reproduced through independent simulations.
 
-## Objectives
+---
 
-* **Analytical Reproduction:** Derivation and implementation of the mathematical models for IMDD system performance as proposed in the reference literature.
-* **Comparative Validation:** Benchmarking the analytical results against numerical simulations performed via the `opticommpy` framework to verify accuracy.
-* **DSP Application:** Practical application of digital signal processing techniques to mitigate transmission constraints in high-capacity optical links.
+# Project Objectives
 
-## Technical Scope
+The project has three main objectives:
 
-Based on the referenced methodology, the simulation and analytical tools encompass the following parameters:
+- **Analytical Reproduction**
+  - Implement all analytical expressions presented in the reference paper for estimating the performance of high-capacity IMDD systems.
 
-* **Modulation Analysis:** Support for M-PAM modulation formats, specifically focusing on 4-PAM solutions for short-reach systems.
-* **Channel Modeling:** Implementation of optoelectronic bandwidth limitations and chromatic dispersion (CD) effects.
-* **Noise Modeling:** Integration of relative intensity noise (RIN), shot noise, thermal noise, and quantization noise associated with the analog-to-digital converters.
-* **Signal Processing:** Deployment of receiver equalization schemes, including feed-forward equalization (FFE) and decision-feedback equalization (DFE).
+- **Numerical Validation**
+  - Develop an independent simulation environment capable of reproducing the transmission scenario described in the paper.
+  - Compare the analytical predictions with numerical simulations.
 
-## References
-[1] G. Rizzelli, P. Torres-Ferrera, F. Forghieri, and R. Gaudino, "An Analytical Model for Performance Estimation in Modern High-Capacity IMDD Systems," Journal of Lightwave Technology, vol. 42, no. 5, pp. 1443-1452, March 1, 2024.
+- **Result Verification**
+  - Reproduce the figures and performance curves reported in the paper.
+  - Evaluate the agreement between the published results and those obtained in this implementation.
+
+---
+
+# Simulation Framework
+
+The simulation environment combines:
+
+- **Custom-developed modules**, implemented specifically for this project;
+- Selected functionalities from **OptiCommPy**, an open-source Python library for optical communication systems developed by Professor Edson Porto da Silva.
+
+This hybrid approach provides full control over the implemented models while leveraging validated components for standard optical communication blocks.
+
+---
+
+# Technical Scope
+
+The implemented framework includes the following features:
+
+## Modulation
+
+- M-PAM modulation formats
+- Primary focus on **4-PAM** systems for short-reach optical communications
+
+## Channel Modeling
+
+- Limited transmitter and receiver bandwidth
+- Chromatic Dispersion (CD)
+
+## Noise Sources
+
+- Relative Intensity Noise (RIN)
+- Shot Noise
+- Thermal Noise
+- ADC Quantization Noise
+
+## Digital Signal Processing
+
+Receiver-side equalization using
+
+- Feed-Forward Equalizer (FFE)
+- Decision Feedback Equalizer (DFE)
+
+---
+
+# Methodology
+
+The workflow adopted in this repository is summarized below:
+
+1. Implement the analytical expressions from the reference paper.
+2. Build the equivalent numerical simulation.
+3. Run both approaches under identical system parameters.
+4. Compare the obtained BER and SNR results.
+5. Validate the analytical model through numerical agreement.
+
+---
+
+# Results
+
+The following sections compare the figures reported in the reference paper with the results obtained from this implementation.
+
+## Example 1 – BER versus Received Optical Power
+
+**Reference paper**
+
+<!-- INSERT FIGURE FROM PAPER -->
+
+<p align="center">
+<img src="docs/paper_figure_1.png" width="700">
+</p>
+
+**This implementation**
+
+<!-- INSERT GENERATED FIGURE -->
+
+<p align="center">
+<img src="docs/our_figure_1.png" width="700">
+</p>
+
+---
+
+## Example 2 – SNR Estimation
+
+**Reference paper**
+
+<!-- INSERT FIGURE FROM PAPER -->
+
+<p align="center">
+<img src="docs/paper_figure_2.png" width="700">
+</p>
+
+**This implementation**
+
+<!-- INSERT GENERATED FIGURE -->
+
+<p align="center">
+<img src="docs/our_figure_2.png" width="700">
+</p>
+
+---
+
+## Example 3 – Equalizer Performance
+
+**Reference paper**
+
+<!-- INSERT FIGURE FROM PAPER -->
+
+<p align="center">
+<img src="docs/paper_figure_3.png" width="700">
+</p>
+
+**This implementation**
+
+<!-- INSERT GENERATED FIGURE -->
+
+<p align="center">
+<img src="docs/our_figure_3.png" width="700">
+</p>
+
+---
+
+# Repository Structure
+
+```text
+├── analytical_models/      # Analytical derivations and implementations
+├── simulations/            # Numerical simulation scripts
+├── dsp/                    # Equalization and DSP algorithms
+├── figures/                # Generated simulation figures
+├── docs/                   # Figures used in the README
+└── README.md
+```
+
+---
+
+# Reference
+
+Rizzelli, G., Torres-Ferrera, P., Forghieri, F., & Gaudino, R.
+
+**An Analytical Model for Performance Estimation in Modern High-Capacity IMDD Systems.**
+
+*Journal of Lightwave Technology*, Vol. 42, No. 5, pp. 1443–1452, 2024.
+
+---
+
+# Acknowledgments
+
+This work was developed as part of the **Digital Signal Processing Training Program** at **Virtus-CC**, under the supervision of **Professor Edson Porto da Silva**.
+
+The project also makes use of selected components from **OptiCommPy**, an open-source framework for optical communication system simulation.
