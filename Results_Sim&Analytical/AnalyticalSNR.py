@@ -669,3 +669,43 @@ def equalizer_output_snr(frequencies, folded_spectral_snr, symbol_rate, equalize
         raise ValueError("equalizer_type deve ser 'FFE' ou 'DFE'.")
 
     return max(float(output_snr), 0.0)
+
+
+def dbm_to_w(power_dBm):
+    """Converte potência de dBm para watts."""
+    return 1e-3 * 10**(np.asarray(power_dBm, dtype=float) / 10)
+
+def pam_levels(M):
+    """Retorna os níveis naturais de uma constelação M-PAM."""
+    return np.arange(-(M - 1), M, 2, dtype=float)
+
+def fold_snr_uniform_grid(spectral_snr, frequency_step, symbol_rate, sampling_frequency):
+    """Realiza o dobramento espectral em uma grade uniforme."""
+
+    spectral_snr = np.asarray(spectral_snr, dtype=float)
+
+    shift_samples = int(np.round(symbol_rate / frequency_step))
+    number_of_folds = int(np.ceil(sampling_frequency / (2 * symbol_rate))) + 1
+
+    folded_snr = np.zeros_like(spectral_snr)
+    number_samples = len(spectral_snr)
+
+    for folding_index in range(-number_of_folds, number_of_folds + 1):
+
+        shift = folding_index * shift_samples
+
+        if shift == 0:
+            folded_snr += spectral_snr
+
+        elif shift > 0 and shift < number_samples:
+            folded_snr[shift:] += spectral_snr[:number_samples - shift]
+
+        elif shift < 0:
+            shift_abs = -shift
+
+            if shift_abs < number_samples:
+                folded_snr[:number_samples - shift_abs] += spectral_snr[shift_abs:]
+
+    return folded_snr
+
+
