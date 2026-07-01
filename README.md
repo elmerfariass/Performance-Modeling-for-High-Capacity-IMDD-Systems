@@ -40,79 +40,64 @@ This hybrid approach provides full control over the implemented models while lev
 
 ---
 
----
+
 
 # Results
 
 The following sections compare the figures reported in the reference paper with the results obtained from this implementation.
 
-## Example 1 – BER versus Received Optical Power
+## Example 1 – SNR versus 3dB in 50 GBaud
 
 **Reference paper**
 
-<!-- INSERT FIGURE FROM PAPER -->
 
 <p align="center">
-  <img src="IMDD_Simulation/images/model.png" width="700" alt="Reference Model">
+  <img src="./images_readme/SNR_3dB_50GBaud_artigo.png" alt="Reference Model" width="700">
 </p>
 
 **This implementation**
 
-<!-- INSERT GENERATED FIGURE -->
 
 <p align="center">
-  <img src="IMDD_Simulation/images/SNRxP_rx.png" width="700" alt="BER x Received Optical Power Implementation">
+  <img src="./images_readme/SNRxB_3dB-50Gbaud.png" alt="Reference Model" width="700">
 </p>
 
 ---
 
-## Example 2 – SNR Estimation
+## Example 2 – BER versus 3dB in 50 GBaud
 
 **Reference paper**
 
-<!-- INSERT FIGURE FROM PAPER -->
 
 <p align="center">
-  <img src="IMDD_Simulation/images/ERRO_SNR_CD.png" width="700" alt="Reference SNR Paper Figure">
+  <img src="./images_readme/BERxB3dB_artigo.png" alt="Reference Model" width="700">
 </p>
 
 **This implementation**
 
-<!-- INSERT GENERATED FIGURE -->
 
 <p align="center">
-  <img src="IMDD_Simulation/images/SNRxFTEtaps com modelo analítico.png" width="700" alt="SNR Estimation Implementation">
+  <img src="./images_readme/BERxB3dB.png" alt="Reference Model" width="700">
 </p>
 
 ---
 
-## Example 3 – Equalizer Performance
+## Example 3 – SNR versus Received Optical Power using 56 GBaud
 
 **Reference paper**
 
-<!-- INSERT FIGURE FROM PAPER -->
 
 <p align="center">
-  <img src="IMDD_Simulation/images/FFE_Desempenho_dB.png" width="700" alt="Reference Equalizer Performance">
+  <img src="./images_readme/SNR_P_rx_artigo.png" alt="Reference Model" width="700">
 </p>
 
 **This implementation**
 
-<!-- INSERT GENERATED FIGURE -->
 
 <p align="center">
-  <img src="IMDD_Simulation/images/DFE_Desempenho_dB.png" width="700" alt="Equalizer Performance Implementation (DFE/FFE)">
+  <img src="./images_readme/SNRxP_rx.png" alt="Reference Model" width="700">
 </p>
 
-**This implementation**
-
-<!-- INSERT GENERATED FIGURE -->
-
-<p align="center">
-<img src="docs/our_figure_3.png" width="700">
-</p>
-
----
 
 # Repository Structure
 
