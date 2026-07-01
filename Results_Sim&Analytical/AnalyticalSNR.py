@@ -1,6 +1,13 @@
 import numpy as np
 from scipy.constants import k as kB  # Boltzmann constant
 from scipy.special import erfc
+from optic.comm.metrics import fastBERcalc
+import scipy.special as sp
+from scipy.constants import c
+from optic.dsp.equalization import dfe, ffe
+
+
+
 # Physical constant
 q = 1.602176634e-19 # Electron charge [C]
 
@@ -11,6 +18,7 @@ Python Archive that contains all the functions used in the project.
 Authors:
 - [@jezraelP] Jezrael Pereira Filgueiras
 - [@elmerfariass] Elmer Pimentel Farias
+- [@EduardoHFC] Eduardo Henrique Freitas Coura
 
 
 
@@ -182,6 +190,7 @@ def calculate_oma_outer(p_tx_avg_mw, er_db):
     oma_outer = 2 * p_tx_avg_mw * (er_lin - 1) / (er_lin + 1)
     return oma_outer
 
+
 def get_spectral_snr(f, oma_outer, symbol_rate, h_t_f, h_ch_f, s_n_f):
     """
     Calcula o SNR espectral baseado na Equação (10)
@@ -229,9 +238,14 @@ def ber_from_snr_m_pam(snr_linear, M):
     """
     snr_linear = np.asarray(snr_linear)
 
-    ber = ((M - 1) / (M * np.log2(M))) * erfc(
-        np.sqrt((3 * snr_linear) / (2 * (M**2 - 1)))
-    )
+    ber = ((M - 1) / (M * np.log2(M))) * erfc(np.sqrt((3 * snr_linear) / (2 * (M**2 - 1))))
+
+    return ber
+
+def snr_to_ber_pam4(snr_lin):
+    """Converte SNR linear elétrica em BER teórica para 4-PAM"""
+
+    ber= (3/8) * sp.erfc(np.sqrt(snr_lin / 10))
 
     return ber
 
@@ -280,3 +294,378 @@ def calc_S_ADC(Vpp, ENOB, Rs, fq_array, fs):
     
     # 4. Retorna como um array do mesmo tamanho que fq_array (espectro plano / branco)
     return np.full_like(fq_array, S_ADC_scalar)
+
+
+
+def calculate_oma_outer(p_tx_average, er_dB):
+    """Calcula a Outer OMA a partir da potência média e da ER."""
+    er_linear = 10**(er_dB / 10)
+    return 2 * p_tx_average * (er_linear - 1) / (er_linear + 1)
+
+
+def normalize_affine(received, reference):
+    """Ajusta ganho e offset da saída do equalizador."""
+    received = np.real(np.asarray(received)).reshape(-1)
+    reference = np.real(np.asarray(reference)).reshape(-1)
+
+    common_length = min(len(received), len(reference))
+    received = received[:common_length]
+    reference = reference[:common_length]
+
+    regression_matrix = np.column_stack((received, np.ones_like(received)))
+    gain, offset = np.linalg.lstsq(regression_matrix, reference, rcond=None)[0]
+
+    return gain * received + offset
+
+
+
+def evaluate_equalizer_output(equalized_signal, reference_symbols, guard_symbols, M):
+    """Remove bordas, normaliza e calcula BER, SER e SNR."""
+
+    equalized_signal = np.real(np.asarray(equalized_signal)).reshape(-1)
+    reference_symbols = np.real(np.asarray(reference_symbols)).reshape(-1)
+
+    common_length = min(len(equalized_signal), len(reference_symbols))
+    equalized_signal = equalized_signal[:common_length]
+    reference_symbols = reference_symbols[:common_length]
+
+    if common_length <= 2 * guard_symbols:
+        raise RuntimeError("A sequência é muito curta para o descarte escolhido.")
+
+    equalized_eval = equalized_signal[guard_symbols:common_length - guard_symbols]
+    reference_eval = reference_symbols[guard_symbols:common_length - guard_symbols]
+
+    equalized_eval = normalize_affine(equalized_eval, reference_eval)
+
+    BER, SER, SNR_dB = fastBERcalc(equalized_eval, reference_eval, M, "pam")
+
+    BER = float(np.asarray(BER).reshape(-1)[0])
+    SER = float(np.asarray(SER).reshape(-1)[0])
+    SNR_dB = float(np.asarray(SNR_dB).reshape(-1)[0])
+
+    return BER, SER, SNR_dB
+
+def evaluate_equalized_output(equalized_signal, reference_symbols, guard_symbols, M):
+    """
+    Calcula a SNR e a BER após o FFE.
+    """
+
+    equalized_signal = np.real(np.asarray(equalized_signal)).reshape(-1)
+    reference_symbols = np.real(np.asarray(reference_symbols)).reshape(-1)
+
+    common_length = min(len(equalized_signal), len(reference_symbols))
+
+    equalized_signal = equalized_signal[:common_length]
+    reference_symbols = reference_symbols[:common_length]
+
+    if common_length <= 2 * guard_symbols:
+        raise RuntimeError("Sequência insuficiente para o descarte.")
+
+    equalized_evaluation = equalized_signal[
+        guard_symbols:common_length - guard_symbols
+    ]
+
+    reference_evaluation = reference_symbols[
+        guard_symbols:common_length - guard_symbols
+    ]
+
+    equalized_evaluation = normalize_affine(
+        equalized_evaluation,
+        reference_evaluation
+    )
+
+    signal_power = np.mean(reference_evaluation**2)
+    error_power = np.mean(
+        (reference_evaluation - equalized_evaluation)**2
+    )
+
+    snr_linear = signal_power / max(
+        error_power,
+        np.finfo(float).tiny
+    )
+
+    snr_dB = 10 * np.log10(snr_linear)
+
+    BER, SER, _ = fastBERcalc(
+        equalized_evaluation,
+        reference_evaluation,
+        M,
+        "pam"
+    )
+
+    BER = float(np.asarray(BER).reshape(-1)[0])
+
+    evaluated_bits = len(reference_evaluation) * int(np.log2(M))
+
+    # Limite de representação quando nenhum erro é observado
+    if BER <= 0:
+        BER_plot = 0.5 / evaluated_bits
+    else:
+        BER_plot = BER
+
+    return snr_dB, BER_plot
+
+
+
+def calculate_output_snr(equalized_signal, reference_symbols, guard_symbols):
+    """Calcula a SNR a partir da potência do sinal e do MSE."""
+
+    equalized_signal = np.real(np.asarray(equalized_signal)).reshape(-1)
+    reference_symbols = np.real(np.asarray(reference_symbols)).reshape(-1)
+
+    common_length = min(len(equalized_signal), len(reference_symbols))
+    equalized_signal = equalized_signal[:common_length]
+    reference_symbols = reference_symbols[:common_length]
+
+    if common_length <= 2 * guard_symbols:
+        raise RuntimeError("Sequência insuficiente para o descarte escolhido.")
+
+    equalized_evaluation = equalized_signal[guard_symbols:common_length - guard_symbols]
+    reference_evaluation = reference_symbols[guard_symbols:common_length - guard_symbols]
+
+    equalized_evaluation = normalize_affine(equalized_evaluation, reference_evaluation)
+
+    signal_power = np.mean(reference_evaluation**2)
+    error_power = np.mean((reference_evaluation - equalized_evaluation)**2)
+    snr_linear = signal_power / max(error_power, np.finfo(float).tiny)
+
+    return 10 * np.log10(snr_linear)
+
+
+def fold_spectral_snr(spectral_snr, frequencies, Rs, number_of_folds):
+    """Realiza o dobramento espectral sem enrolamento circular."""
+
+    spectral_snr = np.asarray(spectral_snr, dtype=float)
+    frequencies = np.asarray(frequencies, dtype=float)
+
+    sorting_indexes = np.argsort(frequencies)
+    frequency_sorted = frequencies[sorting_indexes]
+    snr_sorted = spectral_snr[sorting_indexes]
+
+    folded_sorted = np.zeros_like(snr_sorted)
+
+    for folding_index in range(-number_of_folds, number_of_folds + 1):
+        shifted_frequency = frequency_sorted - folding_index * Rs
+        folded_sorted += np.interp(shifted_frequency, frequency_sorted, snr_sorted, left=0.0, right=0.0)
+
+    folded = np.empty_like(folded_sorted)
+    folded[sorting_indexes] = folded_sorted
+
+    return folded
+
+
+def analytical_ffe_snr(frequencies, spectral_snr, Rs):
+    """Calcula a SNR na saída de um FFE MMSE ideal."""
+
+    nyquist_mask = (frequencies >= -Rs / 2) & (frequencies <= Rs / 2)
+    frequency_nyquist = frequencies[nyquist_mask]
+    snr_nyquist = spectral_snr[nyquist_mask]
+
+    symbol_period = 1 / Rs
+    integral = np.trapezoid(1 / (1 + snr_nyquist), x=frequency_nyquist)
+
+    snr_linear = 1 / (symbol_period * integral) - 1
+    snr_linear = max(float(snr_linear), np.finfo(float).tiny)
+
+    return 10 * np.log10(snr_linear)
+
+def chromatic_dispersion_small_signal(frequencies, dispersion_ps_nm_km, length_km, wavelength_m):
+    """Resposta elétrica de pequeno sinal da dispersão cromática."""
+
+    frequencies = np.asarray(frequencies, dtype=float)
+
+    if length_km == 0:
+        return np.ones_like(frequencies)
+
+    dispersion_SI = dispersion_ps_nm_km * 1e-6
+    length_m = length_km * 1e3
+    carrier_frequency = c / wavelength_m
+
+    argument = np.pi * c * dispersion_SI * length_m * (frequencies / carrier_frequency)**2
+
+    return np.cos(argument)
+
+
+def chromatic_dispersion_field_response(frequencies, dispersion_ps_nm_km, length_km, wavelength_m):
+    """Resposta da dispersão aplicada ao campo óptico."""
+
+    frequencies = np.asarray(frequencies, dtype=float)
+
+    if length_km == 0:
+        return np.ones_like(frequencies, dtype=complex)
+
+    dispersion_SI = dispersion_ps_nm_km * 1e-6
+    length_m = length_km * 1e3
+    carrier_frequency = c / wavelength_m
+
+    phase = np.pi * c * dispersion_SI * length_m * (frequencies / carrier_frequency)**2
+
+    return np.exp(1j * phase)
+
+def apply_frequency_response(signal, frequency_response):
+    """Aplica uma resposta em frequência por meio da FFT."""
+
+    signal = np.asarray(signal).reshape(-1)
+    frequency_response = np.asarray(frequency_response).reshape(-1)
+
+    return np.fft.ifft(np.fft.fft(signal) * frequency_response)
+
+
+def calculate_analytical_point(
+    received_power_W,
+    extinction_ratio_dB,
+    fiber_length_km,
+    analytical_frequencies,
+    transmitter_response,
+    bandwidth_response,
+    dispersion_coefficient,
+    wavelength,
+    symbol_rate,
+    APD_gain,
+    APD_excess_factor,
+    responsivity,
+    RIN_linear,
+    thermal_current_PSD,
+    electron_charge,
+    M
+):
+    """Calcula a SNR global e a BER média dos olhos para um ponto."""
+
+    symbol_period = 1 / symbol_rate
+    OMA_received = calculate_oma_outer(received_power_W, extinction_ratio_dB)
+
+    dispersion_response = chromatic_dispersion_small_signal(
+        analytical_frequencies,
+        dispersion_coefficient,
+        fiber_length_km,
+        wavelength
+    )
+
+    channel_response = bandwidth_response * dispersion_response
+    channel_power_response = np.abs(channel_response)**2
+
+    signal_current_PSD = (
+        (APD_gain * responsivity)**2
+        * (5 / 36)
+        * symbol_period
+        * OMA_received**2
+        * np.abs(transmitter_response)**2
+        * channel_power_response
+    )
+
+    received_levels = received_power_W + np.linspace(-1, 1, M) * OMA_received / 2
+
+    mean_square_received_power = np.mean(received_levels**2)
+
+    RIN_current_PSD = (
+        (APD_gain * responsivity)**2
+        * RIN_linear
+        * mean_square_received_power
+        / 2
+        * channel_power_response
+    )
+
+    shot_current_PSD = APD_gain**2 * APD_excess_factor * electron_charge * responsivity * received_power_W
+    thermal_PSD = thermal_current_PSD / 2
+
+    total_noise_PSD = RIN_current_PSD + shot_current_PSD + thermal_PSD
+
+    spectral_snr = signal_current_PSD / np.maximum(total_noise_PSD, np.finfo(float).tiny)
+    spectral_snr = np.nan_to_num(spectral_snr, nan=0.0, posinf=0.0, neginf=0.0)
+
+    folded_snr = fold_spectral_snr(spectral_snr, analytical_frequencies, symbol_rate, number_of_folds=4)
+    global_snr_linear = analytical_ffe_snr(analytical_frequencies, folded_snr, symbol_rate)
+
+    global_snr_dB = 10 * np.log10(max(global_snr_linear, np.finfo(float).tiny))
+
+    eye_BER_values = []
+
+    for eye_index in range(M - 1):
+
+        eye_levels = received_levels[eye_index:eye_index + 2]
+
+        eye_average_power = np.mean(eye_levels)
+        eye_mean_square_power = np.mean(eye_levels**2)
+
+        eye_RIN_PSD = (
+            (APD_gain * responsivity)**2
+            * RIN_linear
+            * eye_mean_square_power
+            / 2
+            * channel_power_response
+        )
+
+        eye_shot_PSD = APD_gain**2 * APD_excess_factor * electron_charge * responsivity * eye_average_power
+        eye_total_noise_PSD = eye_RIN_PSD + eye_shot_PSD + thermal_PSD
+
+        eye_spectral_snr = signal_current_PSD / np.maximum(eye_total_noise_PSD, np.finfo(float).tiny)
+
+        eye_folded_snr = fold_spectral_snr(
+            eye_spectral_snr,
+            analytical_frequencies,
+            symbol_rate,
+            number_of_folds=4
+        )
+
+        eye_snr_linear = analytical_ffe_snr(analytical_frequencies, eye_folded_snr, symbol_rate)
+        eye_BER = ber_from_snr_m_pam(eye_snr_linear, M)
+
+        eye_BER_values.append(float(eye_BER))
+
+    global_BER = np.mean(eye_BER_values)
+
+    return global_snr_dB, global_BER
+
+
+def fold_snr_uniform_grid(spectral_snr, frequency_step, symbol_rate, sampling_frequency):
+    """Realiza o dobramento espectral em uma grade uniforme."""
+
+    spectral_snr = np.asarray(spectral_snr, dtype=float)
+
+    shift_samples = int(np.round(symbol_rate / frequency_step))
+    number_of_folds = int(np.ceil(sampling_frequency / (2 * symbol_rate))) + 1
+
+    folded_snr = np.zeros_like(spectral_snr)
+    number_samples = len(spectral_snr)
+
+    for folding_index in range(-number_of_folds, number_of_folds + 1):
+
+        shift = folding_index * shift_samples
+
+        if shift == 0:
+            folded_snr += spectral_snr
+
+        elif shift > 0 and shift < number_samples:
+            folded_snr[shift:] += spectral_snr[:number_samples - shift]
+
+        elif shift < 0:
+            shift_abs = -shift
+
+            if shift_abs < number_samples:
+                folded_snr[:number_samples - shift_abs] += spectral_snr[shift_abs:]
+
+    return folded_snr
+
+def equalizer_output_snr(frequencies, folded_spectral_snr, symbol_rate, equalizer_type):
+    frequencies = np.asarray(frequencies, dtype=float)
+    folded_spectral_snr = np.asarray(folded_spectral_snr, dtype=float)
+
+    nyquist_mask = (frequencies >= -symbol_rate / 2) & (frequencies <= symbol_rate / 2)
+    frequency_nyquist = frequencies[nyquist_mask]
+    snr_nyquist = folded_spectral_snr[nyquist_mask]
+
+    symbol_period = 1 / symbol_rate
+    equalizer_type = equalizer_type.upper()
+
+    if equalizer_type == "FFE":
+        integral = np.trapezoid(1 / (1 + snr_nyquist), x=frequency_nyquist)
+        output_snr = 1 / (symbol_period * integral) - 1
+
+    elif equalizer_type == "DFE":
+        integral = np.trapezoid(np.log1p(np.maximum(snr_nyquist, 0.0)), x=frequency_nyquist)
+        output_snr = np.exp(symbol_period * integral) - 1
+
+    else:
+        raise ValueError("equalizer_type deve ser 'FFE' ou 'DFE'.")
+
+    return max(float(output_snr), 0.0)
