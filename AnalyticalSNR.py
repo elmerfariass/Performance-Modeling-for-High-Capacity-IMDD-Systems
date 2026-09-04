@@ -104,7 +104,7 @@ def SNR_FFE(SNR_Folded, f, Rs):
     SNR_Folded_lim = SNR_Folded[mask]
 
     integrando = 1.0 / (SNR_Folded_lim + 1.0)
-    integral = np.trapz(integrando, dx=df)
+    integral = np.trapezoid(integrando, dx=df)
 
     SNR_FFE = (1.0 / (T * integral)) - 1.0
 
